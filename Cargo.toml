@@ -1,0 +1,11 @@
+[package]
+name = "chess-engine"
+version = "0.1.0"
+authors = ["Cameron Reid <csreid.cr@gmail.com>"]
+
+[dependencies]
+chess='*'
+rand='*'
+rayon='*'
+num_cpus= "1.0"
+stopwatch="*"
