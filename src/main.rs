@@ -23,8 +23,7 @@ use rand::*;
 use rand::distributions::{IndependentSample, Range};
 use rayon::prelude::*;
 
-const N:i32 = 300000;
-//const fen:&str = "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1";
+const N:i32 = 50000;
 
 #[derive(Debug)]
 enum GameResult {
@@ -42,25 +41,21 @@ struct SimResult {
 fn sim(b:Board) -> SimResult {
 	let mut board = b.clone();
 	let mut count = 0;
-	//let mut moves = MoveGen::new_legal(&board);
 	let mut moves = [ChessMove::default(); 256];
 	let mut rng = rand::thread_rng();
 
 	while let BoardStatus::Ongoing = board.status() {
-		//let moves_count = moves.len();
 		let moves_count = board.enumerate_moves(&mut moves);
 		let step = Range::new(0, moves_count);
 		let choice = step.ind_sample(&mut rng);
 
-		//let chosen_move = moves.nth(choice).unwrap();
 		let chosen_move = moves[choice as usize];
 
 		board = board.make_move_new(chosen_move);
-		//moves = MoveGen::new_legal(&board);
 
 		count += 1;
 
-		if count >= 20 {
+		if count >= 50 {
 			break;
 		}
 	}
@@ -86,12 +81,11 @@ fn sim(b:Board) -> SimResult {
 }
 
 fn main() {
-	let args:Vec<String> = env::args().collect();
 	let cpus = num_cpus::get();
 
 	let mut finished_count = 0;
 	let mut total_count = 0;
-	let fen = &args[1];
+	let fen = env::args().nth(1).unwrap_or("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".to_string());
 
 	let mut board = Board::from_fen(fen.to_string()).unwrap();
 	let mut rng = rand::thread_rng();
@@ -122,7 +116,6 @@ fn main() {
 			})
 			.sum();
 
-		//(results as f64 / N as f64, m)
 		if (results as f64) > (best) {
 			best = results as f64 / N as f64;
 			best_move = m
@@ -132,4 +125,5 @@ fn main() {
 	println!("{}: {}", best_move, best);
 	println!("Evaluated {} games in {}ms", cpus as i32 * N, sw.elapsed_ms());
 	println!("({}/ms)", (cpus as f64 * N as f64)/(sw.elapsed_ms() as f64));
+	println!("Result\n{}", board.make_move_new(best_move).to_string());
 }
